@@ -21,21 +21,21 @@ public final class TravelPackage {
     private final boolean airportTransfer;
     private final boolean visaSupport;
 
-    private TravelPackage(Builder b) {
-        id = b.id;
-        from = b.from;
-        to = b.to;
-        nights = b.nights;
-        budget = b.budget;
-        hotel = b.hotel;
-        room = b.room;
-        meals = b.meals;
-        adults = b.adults;
-        children = b.children;
-        flight = b.flight;
-        train = b.train;
-        airportTransfer = b.airportTransfer;
-        visaSupport = b.visaSupport;
+    private TravelPackage(Builder builder) {
+        id = builder.id;
+        from = builder.from;
+        to = builder.to;
+        nights = builder.nights;
+        budget = builder.budget;
+        hotel = builder.hotel;
+        room = builder.room;
+        meals = builder.meals;
+        adults = builder.adults;
+        children = builder.children;
+        flight = builder.flight;
+        train = builder.train;
+        airportTransfer = builder.airportTransfer;
+        visaSupport = builder.visaSupport;
     }
 
     public static Builder builder(String id, Location from, Location to) {

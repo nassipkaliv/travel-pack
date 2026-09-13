@@ -6,75 +6,86 @@ import java.util.List;
 /** Business rules. One rule = one method. Collects all errors, then throws once. */
 final class TravelPackageValidator {
 
-    private final TravelPackage p;
+    private final TravelPackage trip;
     private final List<String> errors = new ArrayList<>();
 
-    TravelPackageValidator(TravelPackage p) {
-        this.p = p;
+    TravelPackageValidator(TravelPackage trip) {
+        this.trip = trip;
     }
 
     void validate() {
-        checkNights();
-        checkHotel();
-        checkTransport();
-        checkVisa();
-        checkRoom();
-        checkAirportTransfer();
+        checkNightsInRange();
+        checkHotelIsChosen();
+        checkStarsMatchBudget();
+        checkExactlyOneTransport();
+        checkVisaForInternationalTrip();
+        checkFamilyRoomForChildren();
+        checkGuestsFitRoom();
+        checkFlightForAirportTransfer();
         if (!errors.isEmpty()) {
             throw new InvalidTravelPackageException(errors);
         }
     }
 
-    /** Range: 1..30 nights. */
-    private void checkNights() {
-        if (p.nights() < 1 || p.nights() > 30) {
-            errors.add("Nights must be 1..30, got " + p.nights());
+    /** Valid range: 1..30 nights. */
+    private void checkNightsInRange() {
+        if (trip.nights() < 1 || trip.nights() > 30) {
+            errors.add("Nights must be 1..30, got " + trip.nights());
         }
     }
 
-    /** Mandatory + depends on another parameter: stars must fit the budget. */
-    private void checkHotel() {
-        if (p.hotel() == null) {
+    /** Mandatory parameter. */
+    private void checkHotelIsChosen() {
+        if (trip.hotel() == null) {
             errors.add("Hotel is required");
+        }
+    }
+
+    /** One parameter depends on another: hotel stars depend on budget. */
+    private void checkStarsMatchBudget() {
+        if (trip.hotel() == null) {
             return;
         }
-        BudgetLevel budget = p.budget();
-        int stars = p.hotel().stars();
+        BudgetLevel budget = trip.budget();
+        int stars = trip.hotel().stars();
         if (stars < budget.minStars() || stars > budget.maxStars()) {
             errors.add("%s budget allows %d..%d stars, got %d"
                     .formatted(budget, budget.minStars(), budget.maxStars(), stars));
         }
     }
 
-    /** Mutually exclusive: exactly one of flight or train. */
-    private void checkTransport() {
-        boolean hasFlight = p.flight().isPresent();
-        boolean hasTrain = p.train().isPresent();
-        if (hasFlight == hasTrain) {
+    /** Mutually exclusive options: exactly one of flight or train. */
+    private void checkExactlyOneTransport() {
+        if (trip.flight().isPresent() == trip.train().isPresent()) {
             errors.add("Choose exactly one transport: flight or train");
         }
     }
 
-    /** Mandatory under condition: international trip needs visa support. */
-    private void checkVisa() {
-        if (p.isInternational() && !p.hasVisaSupport()) {
+    /** Mandatory under a condition: international trip needs visa support. */
+    private void checkVisaForInternationalTrip() {
+        if (trip.isInternational() && !trip.hasVisaSupport()) {
             errors.add("International trip requires visa support");
         }
     }
 
-    /** Children need a FAMILY room; guests must fit the room. */
-    private void checkRoom() {
-        if (p.children() > 0 && p.room() != RoomType.FAMILY) {
+    /** One component requires another: children require a FAMILY room. */
+    private void checkFamilyRoomForChildren() {
+        if (trip.children() > 0 && trip.room() != RoomType.FAMILY) {
             errors.add("Children require a FAMILY room");
-        }
-        if (p.guests() > p.room().capacity()) {
-            errors.add("%s room fits %d guests, got %d".formatted(p.room(), p.room().capacity(), p.guests()));
         }
     }
 
-    /** Component requires another component: transfer needs a flight. */
-    private void checkAirportTransfer() {
-        if (p.hasAirportTransfer() && p.flight().isEmpty()) {
+    /** Range depends on another parameter: guests must fit room capacity. */
+    private void checkGuestsFitRoom() {
+        RoomType room = trip.room();
+        if (trip.guests() > room.capacity()) {
+            errors.add("%s room fits %d guests, got %d".formatted(room, room.capacity(), trip.guests()));
+        }
+    }
+
+    /** One component requires another: airport transfer requires a flight. */
+    private void checkFlightForAirportTransfer() {
+        if (trip.hasAirportTransfer() && trip.flight().isEmpty()) {
             errors.add("Airport transfer requires a flight");
         }
     }

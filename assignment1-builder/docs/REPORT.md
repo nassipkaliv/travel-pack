@@ -65,8 +65,8 @@ The preset returns a `Builder`, not a finished object, so the user can still cha
 
 ## 5. Clean Code (Chapter 3)
 
-- Small functions: each rule is a short method (`checkVisa`, `checkRoom`, ...).
-- One function — one job: `validate()` only calls the checks.
+- Small functions: each rule is a short method (`checkVisaForInternationalTrip`, `checkGuestsFitRoom`, ...).
+- One function — one job: one rule per method; `validate()` only calls the checks.
 - No flag arguments: `visaSupport()` instead of `visaSupport(true)`.
 - Clear names, few arguments (0–2 per method).
 - Exceptions instead of error codes.
@@ -85,15 +85,15 @@ The preset returns a `Builder`, not a finished object, so the user can still cha
 | New requirement | What to change |
 |---|---|
 | New budget level or room type | add one enum constant |
-| New rule | add one method in the validator |
+| New rule | add one method in the validator + one line in `validate()` |
 | New option (e.g. insurance) | one field + one builder method |
 | New preset | one static method |
 
 Example — "all inclusive only in 4–5 star hotels":
 
 ```java
-private void checkAllInclusive() {
-    if (p.meals() == MealPlan.ALL_INCLUSIVE && p.hotel() != null && p.hotel().stars() < 4) {
+private void checkStarsForAllInclusive() {
+    if (trip.meals() == MealPlan.ALL_INCLUSIVE && trip.hotel() != null && trip.hotel().stars() < 4) {
         errors.add("All inclusive requires 4-5 stars");
     }
 }

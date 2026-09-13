@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-stone-50 text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
+  }
+  /* grid and flex items must be allowed to shrink below their code lines */
+  .grid > *,
+  .flex > * {
+    min-width: 0;
+  }
+  ::selection {
+    @apply bg-teal-200 text-teal-950;
+  }
+}
+
+.font-mono,
+pre,
+code {
+  font-variant-ligatures: none;
+}
+
+/* Java syntax colors, theme-aware */
+.tok-kw { @apply text-violet-700 dark:text-violet-300; }
+.tok-type { @apply text-sky-700 dark:text-sky-300; }
+.tok-str { @apply text-emerald-700 dark:text-emerald-300; }
+.tok-num { @apply text-amber-700 dark:text-amber-300; }
+.tok-com { @apply text-stone-400 italic dark:text-stone-500; }
+.tok-call { @apply text-teal-800 dark:text-teal-200; }
+.tok-ann { @apply text-rose-600 dark:text-rose-300; }

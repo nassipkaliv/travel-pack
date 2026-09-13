@@ -1,0 +1,61 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class TravelPackage {
+  - id, from, to, nights, budget, hotel
+  - room, meals, adults, children
+  - flight, train, airportTransfer, visaSupport
+  + {static} builder(id, from, to) : Builder
+  + isInternational() : boolean
+}
+
+class "TravelPackage.Builder" as Builder {
+  + nights(int) : Builder
+  + budget(BudgetLevel) : Builder
+  + hotel(name, stars) : Builder
+  + room(RoomType) : Builder
+  + meals(MealPlan) : Builder
+  + travelers(adults, children) : Builder
+  + flight(number) : Builder
+  + train(number) : Builder
+  + airportTransfer() : Builder
+  + visaSupport() : Builder
+  + build() : TravelPackage
+}
+
+class TravelPackageValidator {
+  + validate()
+}
+
+class TravelPresets {
+  + {static} allInclusiveBeach(id, from, to) : Builder
+}
+
+class InvalidTravelPackageException
+
+enum BudgetLevel { ECONOMY
+ STANDARD
+ PREMIUM }
+enum RoomType { STANDARD
+ SUITE
+ FAMILY }
+enum MealPlan
+
+class Location <<record>>
+class Hotel <<record>>
+class Flight <<record>>
+class Train <<record>>
+
+TravelPackage +-- Builder
+Builder ..> TravelPackage : creates
+Builder ..> TravelPackageValidator : validates with
+TravelPackageValidator ..> InvalidTravelPackageException : throws
+TravelPresets ..> Builder : returns
+TravelPackage --> BudgetLevel
+TravelPackage --> RoomType
+TravelPackage --> MealPlan
+TravelPackage *-- Location
+TravelPackage *-- Hotel
+TravelPackage *-- Flight
+TravelPackage *-- Train
+@enduml

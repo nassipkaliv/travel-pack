@@ -7,9 +7,12 @@ Assignment 1, Software Design Patterns — Builder pattern. Java 17, Maven, JUni
 ## Run
 
 ```bash
-./mvnw test                                                        # 25 tests
-./mvnw package && java -cp target/classes kz.aitu.sdp.travel.App   # demo
+./mvnw test                                                        # 28 tests
+./mvnw package && java -cp target/classes kz.aitu.sdp.travel.App   # interactive console
 ```
+
+The console asks for each value (id, route, nights, budget, hotel, room, travelers, transport, extras),
+builds the package through the Builder and prints either the package or every validation error.
 
 ## Example
 

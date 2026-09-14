@@ -33,6 +33,7 @@ See UML in [README](../README.md#uml).
 | `TravelPresets` | preset `allInclusiveBeach` |
 | `BudgetLevel`, `RoomType` | enums that store limits (stars, capacity) |
 | `Hotel`, `Flight`, `Train`, `Location` | small records |
+| `TravelConsole`, `ConsoleInput` | interactive console: the user types values, the Builder creates the package |
 
 How `build()` works:
 
@@ -73,12 +74,13 @@ The preset returns a `Builder`, not a finished object, so the user can still cha
 
 ## 6. Tests
 
-25 JUnit 5 tests, all pass:
+28 JUnit 5 tests, all pass:
 
 - builder: defaults, all values, step order, bad arguments;
 - every rule: valid and invalid case, boundaries (0/1/30/31 nights, star limits, room capacity);
 - all errors are reported at once;
-- preset works, can be changed, and is still validated.
+- preset works, can be changed, and is still validated;
+- console: typed values create a package, invalid input shows all errors (input is simulated with a `Scanner` over a string).
 
 ## 7. Changing requirements
 

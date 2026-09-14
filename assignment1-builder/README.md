@@ -11,16 +11,6 @@ Assignment 1, Software Design Patterns — Builder pattern. Java 17, Maven, JUni
 ./mvnw package && java -cp target/classes kz.aitu.sdp.travel.App   # demo
 ```
 
-## Website
-
-Interactive presentation of the project (React + TypeScript + Tailwind): a live builder playground, UML, rules, tests.
-
-```bash
-cd web
-npm install
-npm run dev
-```
-
 ## Example
 
 ```java

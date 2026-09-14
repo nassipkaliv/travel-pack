@@ -1,10 +1,6 @@
 # Build output
 target/
 out/
-dist/
-
-# Node
-node_modules/
 
 # IDE
 .idea/

@@ -23,7 +23,7 @@ class PrivateGuide implements Excursion {
 
     @Override
     public int groupSize() {
-        return 2;
+        return 3;
     }
 
     @Override

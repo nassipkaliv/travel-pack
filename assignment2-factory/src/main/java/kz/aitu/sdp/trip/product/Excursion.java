@@ -7,6 +7,7 @@ public interface Excursion extends TripComponent {
 
     String guide();
 
+    /** Maximum number of participants this excursion can host. */
     int groupSize();
 
     int durationMinutes();

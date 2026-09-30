@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import kz.aitu.sdp.trip.config.ExternalConfiguration;
 import kz.aitu.sdp.trip.family.budget.BudgetTripFactory;
+import kz.aitu.sdp.trip.family.luxury.LuxuryTripFactory;
 import kz.aitu.sdp.trip.family.premium.PremiumTripFactory;
 import kz.aitu.sdp.trip.family.standard.StandardTripFactory;
 import kz.aitu.sdp.trip.product.TripTier;
@@ -29,6 +30,7 @@ public final class TripFactoryProvider {
         FACTORIES.put(TripTier.BUDGET, BudgetTripFactory::new);
         FACTORIES.put(TripTier.STANDARD, StandardTripFactory::new);
         FACTORIES.put(TripTier.PREMIUM, PremiumTripFactory::new);
+        FACTORIES.put(TripTier.LUXURY, LuxuryTripFactory::new);
     }
 
     private TripFactoryProvider() {

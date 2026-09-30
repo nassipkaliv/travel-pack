@@ -7,5 +7,6 @@ package kz.aitu.sdp.trip.product;
 public enum TripTier {
     BUDGET,
     STANDARD,
-    PREMIUM
+    PREMIUM,
+    LUXURY
 }

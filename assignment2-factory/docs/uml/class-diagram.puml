@@ -1,0 +1,157 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Abstract Factory part" #EAF6F6 {
+
+  interface TripFactory {
+    + tier() : TripTier
+    + createTransport() : Transport
+    + createAccommodation() : Accommodation
+    + createExcursion() : Excursion
+  }
+
+  class BudgetTripFactory
+  class StandardTripFactory
+  class PremiumTripFactory
+  class LuxuryTripFactory <<added in Part G>>
+
+  TripFactory <|.. BudgetTripFactory
+  TripFactory <|.. StandardTripFactory
+  TripFactory <|.. PremiumTripFactory
+  TripFactory <|.. LuxuryTripFactory
+
+  interface Transport {
+    + travelTimeMinutes() : int
+    + baggageKg() : int
+    + doorToDoor() : boolean
+    + pricePerPerson() : int
+  }
+  interface Accommodation {
+    + privateRoom() : boolean
+    + meals() : MealPlan
+    + checkInHour() : int
+    + pricePerNight() : int
+    + packingItems() : List<String>
+  }
+  interface Excursion {
+    + guide() : String
+    + groupSize() : int
+    + durationMinutes() : int
+    + startHour() : int
+    + flexibleStart() : boolean
+    + pricePerPerson() : int
+  }
+
+  class BusTransfer <<package-private>>
+  class EconomyFlight <<package-private>>
+  class BusinessFlight <<package-private>>
+  class PrivateJet <<package-private>>
+  class Hostel <<package-private>>
+  class Hotel3Star <<package-private>>
+  class Resort5Star <<package-private>>
+  class PrivateVilla <<package-private>>
+  class SelfGuidedWalk <<package-private>>
+  class GroupTour <<package-private>>
+  class PrivateGuide <<package-private>>
+  class HelicopterTour <<package-private>>
+
+  Transport <|.. BusTransfer
+  Transport <|.. EconomyFlight
+  Transport <|.. BusinessFlight
+  Transport <|.. PrivateJet
+  Accommodation <|.. Hostel
+  Accommodation <|.. Hotel3Star
+  Accommodation <|.. Resort5Star
+  Accommodation <|.. PrivateVilla
+  Excursion <|.. SelfGuidedWalk
+  Excursion <|.. GroupTour
+  Excursion <|.. PrivateGuide
+  Excursion <|.. HelicopterTour
+
+  BudgetTripFactory ..> BusTransfer : creates
+  BudgetTripFactory ..> Hostel : creates
+  BudgetTripFactory ..> SelfGuidedWalk : creates
+  StandardTripFactory ..> EconomyFlight : creates
+  StandardTripFactory ..> Hotel3Star : creates
+  StandardTripFactory ..> GroupTour : creates
+  PremiumTripFactory ..> BusinessFlight : creates
+  PremiumTripFactory ..> Resort5Star : creates
+  PremiumTripFactory ..> PrivateGuide : creates
+  LuxuryTripFactory ..> PrivateJet : creates
+  LuxuryTripFactory ..> PrivateVilla : creates
+  LuxuryTripFactory ..> HelicopterTour : creates
+}
+
+package "Factory Method part" #FDF1E7 {
+
+  abstract class BookingChannel <<Creator>> {
+    + book(plan, quote, customer) : Booking
+    + confirmationMessage(booking) : String
+    # {abstract} createDocument(...) : BookingDocument
+    # {abstract} finalPrice(quote, customer) : int
+    # {abstract} paymentDeadlineDays() : int
+  }
+
+  class OnlineBookingChannel <<ConcreteCreator>>
+  class AgencyBookingChannel <<ConcreteCreator>>
+  class CorporateBookingChannel <<ConcreteCreator>>
+
+  BookingChannel <|-- OnlineBookingChannel
+  BookingChannel <|-- AgencyBookingChannel
+  BookingChannel <|-- CorporateBookingChannel
+
+  interface BookingDocument <<Product>> {
+    + format() : String
+    + requiresSignature() : boolean
+    + render() : String
+  }
+
+  class EmailVoucher <<package-private>>
+  class PaperVoucher <<package-private>>
+  class CorporateInvoice <<package-private>>
+
+  BookingDocument <|.. EmailVoucher
+  BookingDocument <|.. PaperVoucher
+  BookingDocument <|.. CorporateInvoice
+
+  OnlineBookingChannel ..> EmailVoucher : factory method creates
+  AgencyBookingChannel ..> PaperVoucher : factory method creates
+  CorporateBookingChannel ..> CorporateInvoice : factory method creates
+  BookingChannel ..> BookingDocument : uses
+}
+
+package "Client and selection" #F4F4F4 {
+  class App <<Client>>
+  class TripPlanner <<Client>> {
+    + planTrip(request) : TripPlan
+    + quote(plan) : Quote
+    + arrivalSchedule(plan) : List<ScheduleEntry>
+    + packingAdvice(plan) : PackingList
+  }
+  class TripFactoryProvider <<registry>>
+  class BookingChannels <<registry>>
+  class ExternalConfiguration
+  class TripPlan
+}
+
+App ..> ExternalConfiguration : reads --family / --channel
+App ..> TripFactoryProvider : asks for a factory
+App ..> BookingChannels : asks for a channel
+App --> TripPlanner
+App --> BookingChannel
+TripFactoryProvider ..> TripFactory : returns
+BookingChannels ..> BookingChannel : returns
+TripPlanner --> TripFactory : uses only the interface
+TripPlanner ..> TripPlan : builds
+TripPlan --> Transport
+TripPlan --> Accommodation
+TripPlan --> Excursion
+BookingChannel ..> TripPlan : books
+
+note right of TripPlanner
+  All three components come from
+  one factory instance, so a plan
+  always stays inside one family.
+end note
+@enduml

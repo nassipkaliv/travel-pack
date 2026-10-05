@@ -1,9 +1,5 @@
 # Защита задания 2 — что говорить по порядку
-
-Читай сверху вниз. Слева от текста указано, что открыть или запустить.
-
----
-
+ 
 ## 1. О чём проект (30 секунд)
 
 > «Домен — планирование туров, продолжение первого задания. Объект, который создаёт
@@ -317,3 +313,22 @@ git log --oneline
 - [ ] открыт `PART-G-CHANGES.md` — список изменённых файлов
 - [ ] `git log --oneline` — девять осмысленных коммитов
 - [ ] код запушен на GitHub
+
+
+# Part A — версия без фабрик
+java -cp target/classes kz.aitu.sdp.trip.naive.NaiveApp
+
+# Демо 1: бюджетный тур,
+java -cp target/classes kz.aitu.sdp.trip.app.App --family=BUDGET --nights=3
+
+# Демо 2: расписание меняется само
+java -cp target/classes kz.aitu.sdp.trip.app.App --family=LUXURY --nights=3
+
+# Демо 3: счёт на компанию вместо ваучера
+java -cp target/classes kz.aitu.sdp.trip.app.App --family=PREMIUM --channel=corporate
+
+# Выбор семейства через переменную окружения
+TRIP_FAMILY=LUXURY java -cp target/classes kz.aitu.sdp.trip.app.App
+
+./mvnw test  
+

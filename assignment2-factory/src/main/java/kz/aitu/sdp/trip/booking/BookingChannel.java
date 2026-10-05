@@ -5,17 +5,6 @@ import kz.aitu.sdp.trip.app.TripPlan;
 
 /**
  * Creator of the Factory Method pattern.
- *
- * <p>{@link #book} is the business logic shared by every channel: it checks that the trip
- * can carry the group, applies the pricing rules of the channel, issues a reference number
- * and hands the customer a document. Which <em>kind</em> of document is produced is decided
- * by the subclass through the factory method {@link #createDocument}.
- *
- * <p>Why a factory method and not a static factory: {@code book} is written once and works
- * for any channel, including channels added later; each channel keeps its own state (the
- * counter behind the reference number) and its own pricing; and tests can plug in their own
- * subclass. A static factory would need a switch over channel names and could not be
- * extended without editing it.
  */
 public abstract class BookingChannel {
 
@@ -38,10 +27,8 @@ public abstract class BookingChannel {
                 booking.paymentDeadlineDays(), booking.document().format(), signature);
     }
 
-    /** Factory method: each channel issues its own kind of document. */
     protected abstract BookingDocument createDocument(TripPlan plan, Customer customer, int price, String reference);
 
-    /** Channel pricing rules: discounts, service fees. */
     protected abstract int finalPrice(Quote quote, Customer customer);
 
     protected abstract int paymentDeadlineDays();
@@ -50,7 +37,6 @@ public abstract class BookingChannel {
 
     protected abstract String referencePrefix();
 
-    /** A group larger than the excursion can host cannot be booked. */
     private void requireGroupFits(TripPlan plan, Customer customer) {
         int capacity = plan.excursion().groupSize();
         if (customer.travelers() > capacity) {

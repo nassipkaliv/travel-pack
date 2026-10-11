@@ -10,6 +10,7 @@ import kz.aitu.sdp.notify.notification.UrgentNotification;
 import kz.aitu.sdp.notify.sender.EmailMessageSender;
 import kz.aitu.sdp.notify.sender.KafkaEventSender;
 import kz.aitu.sdp.notify.sender.MessageSender;
+import kz.aitu.sdp.notify.sender.PushNotificationSender;
 import kz.aitu.sdp.notify.sender.SmsMessageSender;
 import kz.aitu.sdp.notify.sender.TelegramMessageSender;
 import org.junit.jupiter.api.Test;
@@ -183,5 +184,39 @@ class BridgeTest {
                 () -> assertEquals(1, telegram.deliveredCount()),
                 () -> assertEquals(1, email.deliveredCount()),
                 () -> assertEquals(1, sms.deliveredCount()));
+    }
+
+    /** Section 6: a provider added later works with notifications written before it. */
+    @Test
+    void newPushProviderWorksWithTheExistingNotifications() {
+        PushNotificationSender push = new PushNotificationSender();
+
+        new UrgentNotification(push).send("device-42", "Disk is full");
+        new EncryptedNotification(push).send("device-42", "One-time code 4821");
+
+        assertAll(
+                () -> assertEquals(2, push.deliveredCount()),
+                () -> assertTrue(push.delivered().get(0).contains("[URGENT] Disk is full")),
+                () -> assertTrue(push.delivered().get(0).startsWith("device=device-42")));
+    }
+
+    @Test
+    void pushProviderTrimsLongMessagesToTheBannerSize() {
+        PushNotificationSender push = new PushNotificationSender();
+
+        new UrgentNotification(push).send("device-42", "x".repeat(300));
+
+        assertTrue(push.lastDelivered().endsWith("..."));
+    }
+
+    @Test
+    void newProviderAlsoJoinsAFallbackChain() {
+        PushNotificationSender push = new PushNotificationSender();
+        telegram.setAvailable(false);
+        UrgentNotification urgent = new UrgentNotification(telegram, push);
+
+        urgent.send("device-42", "Power outage");
+
+        assertEquals("Push", urgent.lastUsedChannel().orElseThrow());
     }
 }

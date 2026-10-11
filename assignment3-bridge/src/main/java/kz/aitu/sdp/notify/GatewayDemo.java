@@ -3,11 +3,13 @@ package kz.aitu.sdp.notify;
 import java.util.List;
 import kz.aitu.sdp.notify.notification.BatchSummary;
 import kz.aitu.sdp.notify.notification.EncryptedNotification;
+import kz.aitu.sdp.notify.notification.MarketingNotification;
 import kz.aitu.sdp.notify.notification.Notification;
 import kz.aitu.sdp.notify.notification.ScheduledBatchNotification;
 import kz.aitu.sdp.notify.notification.UrgentNotification;
 import kz.aitu.sdp.notify.sender.EmailMessageSender;
 import kz.aitu.sdp.notify.sender.MessageSender;
+import kz.aitu.sdp.notify.sender.PushNotificationSender;
 import kz.aitu.sdp.notify.sender.SmsMessageSender;
 import kz.aitu.sdp.notify.sender.TelegramMessageSender;
 
@@ -25,6 +27,7 @@ public final class GatewayDemo {
         demo.batchOverSms();
         demo.switchProviderAtRuntime();
         demo.fallbackWhenTelegramIsDown();
+        demo.marketingOverPush();
     }
 
     private void urgentOverTelegram() {
@@ -63,6 +66,18 @@ public final class GatewayDemo {
         urgent.send("+77011111111", "Power outage in the data centre");
         System.out.println("    delivered through: " + urgent.lastUsedChannel().orElse("nobody"));
         telegram.setAvailable(true);
+    }
+
+    /** Both sides of the bridge extended after the fact, still no combination class. */
+    private void marketingOverPush() {
+        scenario("6. MarketingNotification + PushNotificationSender");
+        PushNotificationSender push = new PushNotificationSender();
+        MarketingNotification campaign = new MarketingNotification(push, "Autumn sale");
+        campaign.optOut("device-77");
+        campaign.send("device-42", "Tours to Antalya are 20% off this week");
+        campaign.send("device-77", "Tours to Antalya are 20% off this week");
+        campaign.setSender(sms);
+        campaign.send("+77011111111", "Tours to Antalya are 20% off this week");
     }
 
     private static String lastBody(EmailMessageSender email) {

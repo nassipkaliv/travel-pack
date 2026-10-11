@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import kz.aitu.sdp.notify.notification.BatchSummary;
 import kz.aitu.sdp.notify.notification.EncryptedNotification;
+import kz.aitu.sdp.notify.notification.MarketingNotification;
 import kz.aitu.sdp.notify.notification.Notification;
 import kz.aitu.sdp.notify.notification.ScheduledBatchNotification;
 import kz.aitu.sdp.notify.notification.UrgentNotification;
@@ -218,5 +219,44 @@ class BridgeTest {
         urgent.send("device-42", "Power outage");
 
         assertEquals("Push", urgent.lastUsedChannel().orElseThrow());
+    }
+
+    /** Section 6: a notification type added later works with providers written before it. */
+    @Test
+    void newMarketingNotificationWorksWithTheExistingProviders() {
+        MarketingNotification campaign = new MarketingNotification(email, "Autumn sale");
+
+        campaign.send("aliya@example.com", "Tours are 20% off");
+        campaign.setSender(telegram);
+        campaign.send("@aliya", "Tours are 20% off");
+
+        assertAll(
+                () -> assertEquals(1, email.deliveredCount()),
+                () -> assertEquals(1, telegram.deliveredCount()),
+                () -> assertTrue(email.lastDelivered().contains("Reply STOP to unsubscribe")),
+                () -> assertTrue(telegram.lastDelivered().startsWith("*Autumn sale*")));
+    }
+
+    @Test
+    void marketingNotificationSkipsRecipientsWhoOptedOut() {
+        MarketingNotification campaign = new MarketingNotification(telegram, "Autumn sale");
+        campaign.optOut("@bolat");
+
+        campaign.send("@aliya", "Tours are 20% off");
+        campaign.send("@bolat", "Tours are 20% off");
+
+        assertEquals(1, telegram.deliveredCount());
+    }
+
+    @Test
+    void newNotificationTypeAndNewProviderWorkTogether() {
+        PushNotificationSender push = new PushNotificationSender();
+        MarketingNotification campaign = new MarketingNotification(push, "Autumn sale");
+
+        campaign.send("device-42", "Tours are 20% off");
+
+        assertAll(
+                () -> assertEquals(1, push.deliveredCount()),
+                () -> assertTrue(push.lastDelivered().contains("push[Autumn sale]")));
     }
 }

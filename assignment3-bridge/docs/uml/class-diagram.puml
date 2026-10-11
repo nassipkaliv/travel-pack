@@ -1,0 +1,84 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Abstraction" #EAF6F6 {
+  abstract class Notification <<Abstraction>> {
+    # sender : MessageSender
+    + Notification(sender)
+    + setSender(sender) : void
+    + {abstract} send(recipient, message) : void
+  }
+
+  class UrgentNotification <<Refined Abstraction>> {
+    - fallbacks : List<MessageSender>
+    + addFallback(sender) : void
+    + lastUsedChannel() : Optional<String>
+    + send(recipient, message) : void
+  }
+  class EncryptedNotification <<Refined Abstraction>> {
+    + send(recipient, message) : void
+    + {static} encrypt(text) : String
+    + {static} decrypt(text) : String
+  }
+  class ScheduledBatchNotification <<Refined Abstraction>> {
+    - recipients : List<String>
+    + addRecipient(recipient) : void
+    + sendBatch(message) : BatchSummary
+    + send(recipient, message) : void
+  }
+  class MarketingNotification <<Refined Abstraction, added later>> {
+    - campaign : String
+    - optedOut : List<String>
+    + optOut(recipient) : void
+    + send(recipient, message) : void
+  }
+
+  Notification <|-- UrgentNotification
+  Notification <|-- EncryptedNotification
+  Notification <|-- ScheduledBatchNotification
+  Notification <|-- MarketingNotification
+}
+
+package "Implementation" #FDF1E7 {
+  interface MessageSender <<Implementor>> {
+    + sendMessage(recipient, title, body) : boolean
+    + isAvailable() : boolean
+    + getChannelName() : String
+  }
+
+  abstract class SimulatedSender {
+    - available : boolean
+    - delivered : List<String>
+    + setAvailable(available) : void
+    + delivered() : List<String>
+    # {abstract} render(recipient, title, body) : String
+    # accepts(payload) : boolean
+  }
+
+  class TelegramMessageSender <<Concrete Implementor>>
+  class EmailMessageSender <<Concrete Implementor>>
+  class SmsMessageSender <<Concrete Implementor>>
+  class KafkaEventSender <<Concrete Implementor>>
+  class PushNotificationSender <<Concrete Implementor, added later>>
+
+  MessageSender <|.. SimulatedSender
+  SimulatedSender <|-- TelegramMessageSender
+  SimulatedSender <|-- EmailMessageSender
+  SimulatedSender <|-- SmsMessageSender
+  SimulatedSender <|-- KafkaEventSender
+  SimulatedSender <|-- PushNotificationSender
+}
+
+class GatewayDemo <<Client>>
+
+Notification o--> MessageSender : **BRIDGE**\nhas-a, not is-a
+UrgentNotification o--> "fallbacks *" MessageSender : fallback chain
+GatewayDemo ..> Notification
+GatewayDemo ..> MessageSender
+
+note bottom of Notification
+  The bridge is the sender field.
+  4 notification types x 5 providers = 20 combinations
+  are served by 9 classes instead of 20.
+end note
+@enduml

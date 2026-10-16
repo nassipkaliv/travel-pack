@@ -31,13 +31,13 @@ Keep two things ready: a terminal in this folder and the editor with the project
 > With Bridge it is four plus five — **nine classes**, because a notification **has a**
 > provider instead of **being** one."
 
-| Abstraction — what is sent | Implementor — how it travels |
-|---|---|
-| `UrgentNotification` | `TelegramMessageSender` — Markdown title |
-| `EncryptedNotification` | `EmailMessageSender` — subject and signature |
-| `ScheduledBatchNotification` | `SmsMessageSender` — max 160 characters |
-| `MarketingNotification` *(added later)* | `KafkaEventSender` — publishes an event |
-| | `PushNotificationSender` *(added later)* — 120-character banner |
+| Abstraction — what is sent | What the traveller gets | Implementor — how it travels |
+|---|---|---|
+| `UrgentNotification` | flight delay, gate change | `TelegramMessageSender` — Markdown title |
+| `EncryptedNotification` | booking code | `EmailMessageSender` — subject and signature |
+| `ScheduledBatchNotification` | transfer time for the whole group | `SmsMessageSender` — max 160 characters |
+| `MarketingNotification` *(added later)* | tour offers | `KafkaEventSender` — publishes an event |
+| | | `PushNotificationSender` *(added later)* — 120-character banner |
 
 ---
 
@@ -64,13 +64,19 @@ public abstract class Notification {
 
 **Open** `notification/UrgentNotification.java` and `sender/TelegramMessageSender.java`
 
+```java
+new UrgentNotification(telegram).send("@aliya", "Flight KC 921 is delayed");
+```
+
 > "Here is the whole flow. The abstraction decides **what** is sent: `UrgentNotification`
-> adds the `[URGENT]` tag and checks whether the provider is available. Then it calls
-> `sender.sendMessage(recipient, title, body)` — and it has no idea which class that is.
+> turns the text into `[URGENT] Flight KC 921 is delayed` and checks whether the provider is
+> available. Then it calls `sender.sendMessage(recipient, title, body)` — and it has no idea
+> which class that is.
 >
-> The provider decides **how** the message looks. Telegram renders a bold Markdown title,
-> Email adds a subject and a signature, SMS produces plain text and refuses anything longer
-> than 160 characters, Kafka builds an event payload.
+> The provider decides **how** the message looks. The same delay becomes
+> `*Urgent notification*\n[URGENT] Flight KC 921 is delayed` on Telegram, a signed e-mail on
+> Email, plain text on SMS — refused if it passes 160 characters — and an event payload on
+> Kafka.
 >
 > So the `[URGENT]` tag comes from the notification, because it belongs to the meaning of
 > the message, and the signature comes from the provider, because it belongs to the channel."
@@ -85,26 +91,34 @@ java -cp target/classes kz.aitu.sdp.notify.GatewayDemo
 
 What to say while the output scrolls:
 
-**Scenarios 1–3:**
-> "Urgent over Telegram, encrypted over Email — the demo decrypts the payload back to prove
-> the plain text never travelled — and a batch over SMS with the required summary:
-> total, successful, failed."
+**Scenario 1 — urgent over Telegram:**
+> "A flight delay reaches the traveller on Telegram. The `[URGENT]` tag comes from the
+> notification, the bold title from the provider."
+
+**Scenario 2 — encrypted over Email:**
+> "The booking code is encrypted before it is handed to the provider, and the demo decrypts
+> it back to prove the plain code never travelled."
+
+**Scenario 3 — batch over SMS:**
+> "The transfer time goes to a group of travellers in one run, and the batch reports the
+> required summary: total, successful, failed."
 
 **Scenario 4 — runtime switching:**
-> "This is the same `UrgentNotification` object. I call `send`, then `setSender(email)`, then
-> `send` again. The notification class was not modified between the two calls; only the
-> implementation behind the bridge changed."
+> "The traveller is told that the villa check-in is confirmed, first on Telegram and then by
+> e-mail. This is the same `UrgentNotification` object: I call `send`, then
+> `setSender(email)`, then `send` again. The notification class was not modified between the
+> two calls; only the implementation behind the bridge changed."
 
 **Scenario 5 — fallback:**
-> "Telegram is marked unavailable, so the urgent notification moves down its chain and SMS
-> delivers the message. The chain is walked through the interface: a provider is skipped when
+> "A gate change has to reach the traveller, but Telegram is down, so the urgent notification
+> moves down its chain and SMS delivers it. The chain is walked through the interface: a provider is skipped when
 > `isAvailable()` returns false **or** when `sendMessage()` returns false. There is no
 > `instanceof` anywhere."
 
 **Scenario 6 — both extensions together:**
-> "A marketing notification, which I added after the providers were done, sent through the
-> Push provider, which I added after the notifications were done. Then the same campaign is
-> switched to SMS. No combination class exists for any of this."
+> "A tour campaign goes out as a marketing notification, which I added after the providers
+> were done, through the Push provider, which I added after the notifications were done. One
+> traveller opted out and is skipped, and then the same campaign is switched to SMS. No combination class exists for any of this."
 
 ---
 
@@ -212,6 +226,7 @@ After the edit: `./mvnw test` and run the demo again.
 | Why an abstract class for `Notification` and an interface for `MessageSender`? | "The abstraction shares state — the `sender` field — so an abstract class fits. Providers share no state through the contract, so an interface is enough. The assignment also specifies both shapes." |
 | Why does `sendMessage` return `boolean`? | "So the abstraction can react to a refusal without knowing the reason. That is what makes the SMS-to-Email fallback possible." |
 | Why is there a `SimulatedSender` base class? | "Only to avoid repeating availability, the log and printing in five providers. The bridge still points at the `MessageSender` interface." |
+| How does this relate to your previous assignments? | "Same travel system. Assignment 1 assembled a trip with Builder, assignment 2 created its components with factories, and this gateway notifies the traveller. The gateway scenario itself is prescribed by the assignment; the messages are mine." |
 | Where is the client? | "`GatewayDemo`. It is the only place that names concrete classes: it creates the providers, wires them into notifications and runs the scenarios." |
 | How many classes would there be without Bridge? | "Twenty combinations for four types and five providers, and a new provider would add four more. With Bridge it is nine classes and a new provider is one." |
 

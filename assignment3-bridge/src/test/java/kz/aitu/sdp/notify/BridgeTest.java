@@ -30,18 +30,18 @@ class BridgeTest {
 
     @Test
     void urgentNotificationIsDeliveredAndTagged() {
-        new UrgentNotification(telegram).send("@aliya", "Disk is full");
+        new UrgentNotification(telegram).send("@aliya", "Flight KC 921 is delayed");
 
         assertAll(
                 () -> assertEquals(1, telegram.deliveredCount()),
-                () -> assertTrue(telegram.lastDelivered().contains("[URGENT] Disk is full")));
+                () -> assertTrue(telegram.lastDelivered().contains("[URGENT] Flight KC 921 is delayed")));
     }
 
     @Test
     void unavailableProviderDeliversNothing() {
         telegram.setAvailable(false);
 
-        new UrgentNotification(telegram).send("@aliya", "Disk is full");
+        new UrgentNotification(telegram).send("@aliya", "Flight KC 921 is delayed");
 
         assertAll(
                 () -> assertFalse(telegram.isAvailable()),
@@ -53,7 +53,7 @@ class BridgeTest {
         telegram.setAvailable(false);
         UrgentNotification urgent = new UrgentNotification(telegram, sms);
 
-        urgent.send("+77011111111", "Power outage");
+        urgent.send("+77011111111", "Gate changed to B12");
 
         assertAll(
                 () -> assertEquals(0, telegram.deliveredCount()),
@@ -80,7 +80,7 @@ class BridgeTest {
         sms.setAvailable(false);
         UrgentNotification urgent = new UrgentNotification(telegram, sms);
 
-        urgent.send("@aliya", "Power outage");
+        urgent.send("@aliya", "Gate changed to B12");
 
         assertAll(
                 () -> assertTrue(urgent.lastUsedChannel().isEmpty()),
@@ -101,14 +101,14 @@ class BridgeTest {
 
     @Test
     void encryptedNotificationHidesTheMessageAndCanBeDecrypted() {
-        new EncryptedNotification(email).send("aliya@example.com", "One-time code 4821");
+        new EncryptedNotification(email).send("aliya@example.com", "Booking code 4821");
         String payload = email.lastDelivered();
 
         assertAll(
-                () -> assertFalse(payload.contains("One-time code 4821"), "plain text must not travel"),
-                () -> assertTrue(payload.contains(EncryptedNotification.encrypt("One-time code 4821"))),
-                () -> assertEquals("One-time code 4821",
-                        EncryptedNotification.decrypt(EncryptedNotification.encrypt("One-time code 4821"))));
+                () -> assertFalse(payload.contains("Booking code 4821"), "plain text must not travel"),
+                () -> assertTrue(payload.contains(EncryptedNotification.encrypt("Booking code 4821"))),
+                () -> assertEquals("Booking code 4821",
+                        EncryptedNotification.decrypt(EncryptedNotification.encrypt("Booking code 4821"))));
     }
 
     @Test
@@ -116,7 +116,7 @@ class BridgeTest {
         ScheduledBatchNotification batch = new ScheduledBatchNotification(email,
                 List.of("a@example.com", "b@example.com", "c@example.com"));
 
-        BatchSummary summary = batch.sendBatch("Classes start at 09:00");
+        BatchSummary summary = batch.sendBatch("Transfer leaves at 09:00");
 
         assertAll(
                 () -> assertEquals(3, summary.total()),
@@ -131,7 +131,7 @@ class BridgeTest {
                 List.of("+77011111111", "+77012222222"));
         sms.setAvailable(false);
 
-        BatchSummary summary = batch.sendBatch("Classes start at 09:00");
+        BatchSummary summary = batch.sendBatch("Transfer leaves at 09:00");
 
         assertAll(
                 () -> assertEquals(2, summary.total()),
@@ -144,9 +144,9 @@ class BridgeTest {
     void theSameNotificationObjectChangesItsProviderAtRuntime() {
         Notification notification = new UrgentNotification(telegram);
 
-        notification.send("@aliya", "Deploy finished");
+        notification.send("@aliya", "Villa check-in confirmed");
         notification.setSender(email);
-        notification.send("aliya@example.com", "Deploy finished");
+        notification.send("aliya@example.com", "Villa check-in confirmed");
 
         assertAll(
                 () -> assertEquals(1, telegram.deliveredCount()),
@@ -160,7 +160,7 @@ class BridgeTest {
         List<String> payloads = new ArrayList<>();
 
         for (MessageSender provider : providers) {
-            new UrgentNotification(provider).send("user", "Backup failed");
+            new UrgentNotification(provider).send("user", "Flight KC 921 is delayed");
         }
         payloads.add(telegram.lastDelivered());
         payloads.add(email.lastDelivered());
@@ -178,7 +178,7 @@ class BridgeTest {
     @Test
     void oneNotificationClassServesEveryProvider() {
         for (MessageSender provider : List.of(telegram, email, sms, new KafkaEventSender())) {
-            new UrgentNotification(provider).send("user", "Backup failed");
+            new UrgentNotification(provider).send("user", "Flight KC 921 is delayed");
         }
 
         assertAll(
@@ -192,12 +192,12 @@ class BridgeTest {
     void newPushProviderWorksWithTheExistingNotifications() {
         PushNotificationSender push = new PushNotificationSender();
 
-        new UrgentNotification(push).send("device-42", "Disk is full");
-        new EncryptedNotification(push).send("device-42", "One-time code 4821");
+        new UrgentNotification(push).send("device-42", "Flight KC 921 is delayed");
+        new EncryptedNotification(push).send("device-42", "Booking code 4821");
 
         assertAll(
                 () -> assertEquals(2, push.deliveredCount()),
-                () -> assertTrue(push.delivered().get(0).contains("[URGENT] Disk is full")),
+                () -> assertTrue(push.delivered().get(0).contains("[URGENT] Flight KC 921 is delayed")),
                 () -> assertTrue(push.delivered().get(0).startsWith("device=device-42")));
     }
 
@@ -216,7 +216,7 @@ class BridgeTest {
         telegram.setAvailable(false);
         UrgentNotification urgent = new UrgentNotification(telegram, push);
 
-        urgent.send("device-42", "Power outage");
+        urgent.send("device-42", "Gate changed to B12");
 
         assertEquals("Push", urgent.lastUsedChannel().orElseThrow());
     }
@@ -226,9 +226,9 @@ class BridgeTest {
     void newMarketingNotificationWorksWithTheExistingProviders() {
         MarketingNotification campaign = new MarketingNotification(email, "Autumn sale");
 
-        campaign.send("aliya@example.com", "Tours are 20% off");
+        campaign.send("aliya@example.com", "Antalya tours are 20% off");
         campaign.setSender(telegram);
-        campaign.send("@aliya", "Tours are 20% off");
+        campaign.send("@aliya", "Antalya tours are 20% off");
 
         assertAll(
                 () -> assertEquals(1, email.deliveredCount()),
@@ -242,8 +242,8 @@ class BridgeTest {
         MarketingNotification campaign = new MarketingNotification(telegram, "Autumn sale");
         campaign.optOut("@bolat");
 
-        campaign.send("@aliya", "Tours are 20% off");
-        campaign.send("@bolat", "Tours are 20% off");
+        campaign.send("@aliya", "Antalya tours are 20% off");
+        campaign.send("@bolat", "Antalya tours are 20% off");
 
         assertEquals(1, telegram.deliveredCount());
     }
@@ -253,7 +253,7 @@ class BridgeTest {
         PushNotificationSender push = new PushNotificationSender();
         MarketingNotification campaign = new MarketingNotification(push, "Autumn sale");
 
-        campaign.send("device-42", "Tours are 20% off");
+        campaign.send("device-42", "Antalya tours are 20% off");
 
         assertAll(
                 () -> assertEquals(1, push.deliveredCount()),

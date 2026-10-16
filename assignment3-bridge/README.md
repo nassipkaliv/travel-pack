@@ -2,6 +2,9 @@
 
 Assignment 3, Software Design Patterns. Java 17, Maven, JUnit 5.
 
+The gateway notifies the travellers of the booking system built in the previous assignments:
+flight delays and gate changes, booking codes, transfer times and campaign offers.
+
 Notification **types** and delivery **providers** are two separate hierarchies joined by one
 reference. Four types and five providers give twenty combinations, implemented by
 **nine classes** instead of twenty.

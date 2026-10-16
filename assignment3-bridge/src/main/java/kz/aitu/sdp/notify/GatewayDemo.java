@@ -13,7 +13,12 @@ import kz.aitu.sdp.notify.sender.PushNotificationSender;
 import kz.aitu.sdp.notify.sender.SmsMessageSender;
 import kz.aitu.sdp.notify.sender.TelegramMessageSender;
 
-/** Runs the scenarios the assignment requires. */
+/**
+ * Runs the scenarios the assignment requires.
+ *
+ * <p>The gateway serves the travel system of the previous assignments: travellers are told
+ * about delays and gate changes, receive booking codes, transfer times and campaign offers.
+ */
 public final class GatewayDemo {
 
     private final TelegramMessageSender telegram = new TelegramMessageSender();
@@ -32,12 +37,12 @@ public final class GatewayDemo {
 
     private void urgentOverTelegram() {
         scenario("1. UrgentNotification + Telegram");
-        new UrgentNotification(telegram).send("@aliya", "Server room temperature is too high");
+        new UrgentNotification(telegram).send("@aliya", "Flight KC 921 to Antalya is delayed by 2 hours");
     }
 
     private void encryptedOverEmail() {
         scenario("2. EncryptedNotification + Email");
-        new EncryptedNotification(email).send("aliya@example.com", "Your one-time code is 4821");
+        new EncryptedNotification(email).send("aliya@example.com", "Your booking code for the Antalya trip is 4821");
         System.out.println("    decrypted back: " + EncryptedNotification.decrypt(lastBody(email)));
     }
 
@@ -45,7 +50,7 @@ public final class GatewayDemo {
         scenario("3. ScheduledBatchNotification + SMS");
         ScheduledBatchNotification batch = new ScheduledBatchNotification(sms,
                 List.of("+77011111111", "+77012222222", "+77013333333"));
-        BatchSummary summary = batch.sendBatch("Classes start at 09:00 tomorrow");
+        BatchSummary summary = batch.sendBatch("Transfer to the hotel leaves at 09:00 tomorrow");
         System.out.println(summary.toString().indent(4).stripTrailing());
     }
 
@@ -53,9 +58,9 @@ public final class GatewayDemo {
     private void switchProviderAtRuntime() {
         scenario("4. Runtime switching: Telegram -> Email");
         Notification notification = new UrgentNotification(telegram);
-        notification.send("@aliya", "Deploy finished");
+        notification.send("@aliya", "Villa check-in confirmed for 14 October");
         notification.setSender(email);
-        notification.send("aliya@example.com", "Deploy finished");
+        notification.send("aliya@example.com", "Villa check-in confirmed for 14 October");
         System.out.println("    the UrgentNotification class was not modified between the two calls");
     }
 
@@ -63,7 +68,7 @@ public final class GatewayDemo {
         scenario("5. Telegram unavailable -> fallback to SMS");
         telegram.setAvailable(false);
         UrgentNotification urgent = new UrgentNotification(telegram, sms);
-        urgent.send("+77011111111", "Power outage in the data centre");
+        urgent.send("+77011111111", "Gate changed: flight KC 921 now departs from gate B12");
         System.out.println("    delivered through: " + urgent.lastUsedChannel().orElse("nobody"));
         telegram.setAvailable(true);
     }

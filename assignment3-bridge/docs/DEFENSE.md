@@ -18,8 +18,11 @@ Keep two things ready: a terminal in this folder and the editor with the project
 
 ## 1. What the project is (30 seconds)
 
-> "The project is a **Multi-Channel Notification Gateway**. It sends different **types of
-> notification** through different **delivery providers**.
+> "The project is a **Multi-Channel Notification Gateway**. The scenario is set by the
+> assignment, and I built it as the notification side of the travel system from the previous
+> two assignments: assignment 1 assembled a trip, assignment 2 created its components, and
+> this gateway tells the traveller about delays, gate changes, booking codes and offers.
+> It sends different **types of notification** through different **delivery providers**.
 >
 > There are two independent dimensions. *What* is sent: urgent, encrypted, scheduled batch
 > and marketing notifications. *How* it travels: Telegram, Email, SMS, Kafka and Push.

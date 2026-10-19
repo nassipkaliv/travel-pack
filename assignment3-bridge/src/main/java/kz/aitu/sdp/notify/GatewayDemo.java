@@ -8,17 +8,11 @@ import kz.aitu.sdp.notify.notification.Notification;
 import kz.aitu.sdp.notify.notification.ScheduledBatchNotification;
 import kz.aitu.sdp.notify.notification.UrgentNotification;
 import kz.aitu.sdp.notify.sender.EmailMessageSender;
-import kz.aitu.sdp.notify.sender.MessageSender;
 import kz.aitu.sdp.notify.sender.PushNotificationSender;
 import kz.aitu.sdp.notify.sender.SmsMessageSender;
 import kz.aitu.sdp.notify.sender.TelegramMessageSender;
 
-/**
- * Runs the scenarios the assignment requires.
- *
- * <p>The gateway serves the travel system of the previous assignments: travellers are told
- * about delays and gate changes, receive booking codes, transfer times and campaign offers.
- */
+
 public final class GatewayDemo {
 
     private final TelegramMessageSender telegram = new TelegramMessageSender();

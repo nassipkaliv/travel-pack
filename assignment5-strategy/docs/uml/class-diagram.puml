@@ -1,0 +1,141 @@
+@startuml
+skinparam classAttributeIconSize 0
+left to right direction
+
+package "Context" #EAF6F6 {
+  class RoutePlanner <<Context>> {
+    - strategy : RouteStrategy
+    + RoutePlanner(strategy)
+    + setStrategy(strategy) : void
+    + getStrategy() : RouteStrategy
+    + plan(routes, request) : RouteDecision
+  }
+  class StrategySelector {
+    - rules : List<SelectionRule>
+    - fallback : RouteStrategy
+    + when(description, condition, strategy) : StrategySelector
+    + select(request) : RouteStrategy
+    + choose(request) : Selection
+  }
+  class StrategyComparison {
+    - strategies : List<RouteStrategy>
+    + compare(routes, request) : List<Outcome>
+    + report(routes, request) : String
+  }
+}
+
+package "Strategy" #FFF4E0 {
+  interface RouteStrategy <<Strategy>> {
+    + selectRoute(routes, request) : RouteDecision
+    + getStrategyName() : String
+  }
+  abstract class ScoredRouteStrategy {
+    - constraints : HardConstraints
+    + selectRoute(routes, request) : RouteDecision {final}
+    # {abstract} scorer(candidates, request) : RouteScorer
+  }
+  class FastestRouteStrategy <<Concrete Strategy>>
+  class CheapestRouteStrategy <<Concrete Strategy>>
+  class EcoFriendlyRouteStrategy <<Concrete Strategy>> {
+    - emissionWeight : double
+    - distanceWeight : double
+  }
+  class BalancedRouteStrategy <<Concrete Strategy>> {
+    - timeWeight : double
+    - costWeight : double
+    - distanceWeight : double
+    - emissionWeight : double
+  }
+  class PremiumRouteStrategy <<Concrete Strategy, added later>> {
+    ~ {static} ON_TIME_GUARANTEE : RouteConstraint
+  }
+  class RouteDecision <<record>> {
+    strategyName : String
+    route : Route
+    score : RouteScore
+    rejections : List<Rejection>
+    + explain() : String
+  }
+  class RouteScore <<record>> {
+    value : double
+    breakdown : List<String>
+  }
+}
+
+package "Constraints" #F3EAF8 {
+  interface RouteConstraint {
+    + violation(route, request) : Optional<String>
+  }
+  class HardConstraints {
+    + {static} standard() : HardConstraints
+    + with(extra) : HardConstraints
+    + screen(routes, request) : Screening
+  }
+  class Rejection <<record>>
+  class NoSuitableRouteException
+}
+
+package "Domain" #EEF2FA {
+  class Route <<record>> {
+    id, name : String
+    origin, destination : Location
+    distanceKm : double
+    estimatedMinutes : int
+    cost, carbonEmission : double
+    traffic : TrafficLevel
+    available : boolean
+    prohibitedCargo : Set<CargoType>
+    + expectedMinutes() : int
+  }
+  class DeliveryRequest <<record>> {
+    id : String
+    priority : DeliveryPriority
+    cargo : CargoType
+    maxBudget : double
+    maxDeliveryMinutes : int
+    maxEmissionKg : double
+    ecoPreferred : boolean
+  }
+  class Location <<record>>
+  class Tariff {
+    + {static} price(route, request) : CostBreakdown
+  }
+  enum TrafficLevel
+  enum DeliveryPriority
+  enum CargoType
+}
+
+class RoutingConfig <<composition root>>
+class RouteDemo <<Client>>
+
+RoutePlanner o--> RouteStrategy : delegates to
+StrategySelector o--> "*" RouteStrategy : rules
+StrategyComparison o--> "*" RouteStrategy
+StrategyComparison ..> RoutePlanner : uses
+
+RouteStrategy <|.. ScoredRouteStrategy
+ScoredRouteStrategy <|-- FastestRouteStrategy
+ScoredRouteStrategy <|-- CheapestRouteStrategy
+ScoredRouteStrategy <|-- EcoFriendlyRouteStrategy
+ScoredRouteStrategy <|-- BalancedRouteStrategy
+ScoredRouteStrategy <|-- PremiumRouteStrategy
+ScoredRouteStrategy o--> HardConstraints
+RouteStrategy ..> RouteDecision : returns
+RouteDecision *-- RouteScore
+RouteDecision o-- Rejection
+HardConstraints o--> "*" RouteConstraint
+ScoredRouteStrategy ..> NoSuitableRouteException : throws
+
+RouteStrategy ..> Route
+RouteStrategy ..> DeliveryRequest
+Route --> Location
+Route --> TrafficLevel
+DeliveryRequest --> DeliveryPriority
+DeliveryRequest --> CargoType
+Tariff ..> Route
+
+RoutingConfig ..> StrategySelector : configures
+RoutingConfig ..> FastestRouteStrategy : creates
+RouteDemo ..> RoutingConfig
+RouteDemo ..> RoutePlanner
+@enduml

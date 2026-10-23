@@ -1,0 +1,36 @@
+@startuml
+title Request #101 (URGENT): automatic selection -> planning -> decision
+
+actor "RouteDemo\n(Client)" as Client
+participant StrategySelector
+participant RoutePlanner
+participant "FastestRouteStrategy\n(selectRoute from ScoredRouteStrategy)" as Fastest
+participant HardConstraints
+participant RouteDecision
+
+Client -> StrategySelector : choose(request)
+StrategySelector -> StrategySelector : first rule whose condition matches\n"URGENT priority"
+StrategySelector --> Client : Selection(rule, FastestRouteStrategy)
+
+Client -> RoutePlanner : setStrategy(fastest)
+Client -> RoutePlanner : plan(routes, request)
+RoutePlanner -> Fastest : selectRoute(copy of routes, request)
+
+Fastest -> HardConstraints : screen(routes, request)
+HardConstraints --> Fastest : Screening(accepted, rejected)
+
+alt no route accepted
+  Fastest --> Client : throw NoSuitableRouteException(rejections)
+else at least one route accepted
+  Fastest -> Fastest : scorer(accepted, request)
+  loop every accepted route
+    Fastest -> Fastest : score = estimated + traffic penalty
+  end
+  Fastest -> Fastest : lowest score, ties -> cheaper, then id
+  create RouteDecision
+  Fastest -> RouteDecision : new(route, score, rejections)
+  Fastest --> RoutePlanner : RouteDecision
+  RoutePlanner --> Client : RouteDecision
+  Client -> RouteDecision : explain()
+end
+@enduml

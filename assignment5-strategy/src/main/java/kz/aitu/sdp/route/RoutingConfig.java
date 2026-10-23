@@ -1,5 +1,6 @@
 package kz.aitu.sdp.route;
 
+import java.util.List;
 import kz.aitu.sdp.route.domain.DeliveryPriority;
 import kz.aitu.sdp.route.planner.StrategySelector;
 import kz.aitu.sdp.route.strategy.BalancedRouteStrategy;
@@ -20,6 +21,11 @@ public final class RoutingConfig {
     public static final RouteStrategy BALANCED = new BalancedRouteStrategy(0.40, 0.30, 0.10, 0.20);
 
     private RoutingConfig() {
+    }
+
+    /** Every strategy the comparison mode runs. */
+    public static List<RouteStrategy> strategies() {
+        return List.of(FASTEST, CHEAPEST, ECO, BALANCED);
     }
 
     /** Rules are checked in order: an URGENT request that prefers eco still goes Fastest. */

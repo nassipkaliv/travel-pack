@@ -29,6 +29,7 @@ public final class RouteDemo {
         demo.selectStrategyAutomatically();
         demo.compareAllStrategies();
         demo.failureScenarios();
+        demo.premiumStrategyAddedLater();
     }
 
     /** One planner object, four algorithms, three switches. */
@@ -84,6 +85,19 @@ public final class RouteDemo {
         attempt("negative distance", () -> new Route("R9", "Broken record", DemoData.HUB, DemoData.EXPO,
                 -3, 10, 500, 1.0, TrafficLevel.LOW, true, Set.of()));
         attempt("missing delivery priority", () -> new DeliveryRequest("107", null, CargoType.GENERAL, 5_000, 60, false));
+    }
+
+    /** The fifth strategy: one new class and one new rule, the planner is untouched. */
+    private void premiumStrategyAddedLater() {
+        scenario("5. PremiumRouteStrategy, added after the first four");
+        DeliveryRequest request = DemoData.PREMIUM_HAZARDOUS;
+        Selection selection = RoutingConfig.selector().choose(request);
+        RoutePlanner planner = new RoutePlanner(RoutingConfig.FASTEST);
+        printShort(planner.plan(routes, request));
+
+        planner.setStrategy(selection.strategy());
+        System.out.printf("  rule \"%s\" -> %s strategy%n", selection.rule(), selection.strategy().getStrategyName());
+        System.out.println(planner.plan(routes, request).explain().indent(4).stripTrailing());
     }
 
     private static void attempt(String title, Runnable action) {

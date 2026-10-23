@@ -42,6 +42,10 @@ public final class DemoData {
     public static final DeliveryRequest IMPOSSIBLE =
             new DeliveryRequest("106", DeliveryPriority.URGENT, CargoType.HAZARDOUS, 3_000, 30, false);
 
+    /** URGENT hazardous cargo for a customer who paid for a guaranteed slot. */
+    public static final DeliveryRequest PREMIUM_HAZARDOUS =
+            new DeliveryRequest("107", DeliveryPriority.URGENT, CargoType.HAZARDOUS, 20_000, 44, false);
+
     private DemoData() {
     }
 

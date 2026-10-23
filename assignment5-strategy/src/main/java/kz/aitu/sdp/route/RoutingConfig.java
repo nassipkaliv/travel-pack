@@ -7,6 +7,7 @@ import kz.aitu.sdp.route.strategy.BalancedRouteStrategy;
 import kz.aitu.sdp.route.strategy.CheapestRouteStrategy;
 import kz.aitu.sdp.route.strategy.EcoFriendlyRouteStrategy;
 import kz.aitu.sdp.route.strategy.FastestRouteStrategy;
+import kz.aitu.sdp.route.strategy.PremiumRouteStrategy;
 import kz.aitu.sdp.route.strategy.RouteStrategy;
 
 /**
@@ -19,18 +20,21 @@ public final class RoutingConfig {
     public static final RouteStrategy CHEAPEST = new CheapestRouteStrategy();
     public static final RouteStrategy ECO = new EcoFriendlyRouteStrategy();
     public static final RouteStrategy BALANCED = new BalancedRouteStrategy(0.40, 0.30, 0.10, 0.20);
+    public static final RouteStrategy PREMIUM = new PremiumRouteStrategy();
 
     private RoutingConfig() {
     }
 
     /** Every strategy the comparison mode runs. */
     public static List<RouteStrategy> strategies() {
-        return List.of(FASTEST, CHEAPEST, ECO, BALANCED);
+        return List.of(FASTEST, CHEAPEST, ECO, BALANCED, PREMIUM);
     }
 
     /** Rules are checked in order: an URGENT request that prefers eco still goes Fastest. */
     public static StrategySelector selector() {
         return new StrategySelector(BALANCED)
+                .when("URGENT with a premium budget",
+                        request -> request.priority() == DeliveryPriority.URGENT && request.maxBudget() >= 15_000, PREMIUM)
                 .when("URGENT priority", request -> request.priority() == DeliveryPriority.URGENT, FASTEST)
                 .when("ECONOMY priority", request -> request.priority() == DeliveryPriority.ECONOMY, CHEAPEST)
                 .when("ECO priority or eco preferred",

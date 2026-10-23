@@ -3,7 +3,10 @@ package kz.aitu.sdp.route;
 import java.util.List;
 import kz.aitu.sdp.route.domain.DeliveryRequest;
 import kz.aitu.sdp.route.domain.Route;
+import kz.aitu.sdp.route.domain.Tariff;
 import kz.aitu.sdp.route.planner.RoutePlanner;
+import kz.aitu.sdp.route.planner.StrategySelector;
+import kz.aitu.sdp.route.planner.StrategySelector.Selection;
 import kz.aitu.sdp.route.strategy.BalancedRouteStrategy;
 import kz.aitu.sdp.route.strategy.CheapestRouteStrategy;
 import kz.aitu.sdp.route.strategy.EcoFriendlyRouteStrategy;
@@ -18,6 +21,7 @@ public final class RouteDemo {
     public static void main(String[] args) {
         RouteDemo demo = new RouteDemo();
         demo.switchStrategiesAtRuntime();
+        demo.selectStrategyAutomatically();
     }
 
     /** One planner object, four algorithms, three switches. */
@@ -36,6 +40,25 @@ public final class RouteDemo {
         planner.setStrategy(new BalancedRouteStrategy(0.40, 0.30, 0.10, 0.20));
         printShort(planner.plan(routes, request));
         System.out.println("    the same planner object served all four strategies");
+    }
+
+    /** The selector picks the strategy, the planner runs it, the decision explains itself. */
+    private void selectStrategyAutomatically() {
+        scenario("2. Automatic strategy selection");
+        StrategySelector selector = RoutingConfig.selector();
+        RoutePlanner planner = new RoutePlanner(RoutingConfig.BALANCED);
+        for (DeliveryRequest request : List.of(DemoData.URGENT_MEDICAL, DemoData.ECONOMY_PARCEL,
+                DemoData.ECO_PARCEL, DemoData.STANDARD_FRAGILE)) {
+            Selection selection = selector.choose(request);
+            planner.setStrategy(selection.strategy());
+            RouteDecision decision = planner.plan(routes, request);
+
+            System.out.printf("%n  Request #%s: %s, %s cargo, budget %s, deadline %d min%n",
+                    request.id(), request.priority(), request.cargo(),
+                    Tariff.kzt(request.maxBudget()), request.maxDeliveryMinutes());
+            System.out.printf("  rule \"%s\" -> %s strategy%n", selection.rule(), selection.strategy().getStrategyName());
+            System.out.println(decision.explain().indent(4).stripTrailing());
+        }
     }
 
     private static void printShort(RouteDecision decision) {

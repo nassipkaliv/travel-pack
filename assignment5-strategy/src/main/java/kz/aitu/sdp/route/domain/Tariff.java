@@ -1,5 +1,7 @@
 package kz.aitu.sdp.route.domain;
 
+import java.util.Locale;
+
 /**
  * The price the customer pays for a route, in tenge:
  *
@@ -31,6 +33,10 @@ public final class Tariff {
 
     public static double totalCost(Route route, DeliveryRequest request) {
         return price(route, request).total();
+    }
+
+    public static String kzt(double amount) {
+        return String.format(Locale.ROOT, "%,.0f KZT", amount);
     }
 
     public record CostBreakdown(double base, double distance, double prioritySurcharge, double fees) {
